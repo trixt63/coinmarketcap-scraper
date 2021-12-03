@@ -8,6 +8,7 @@ Based on towardsdatascience's [Scraping Interactive Line Charts with Python](htt
 - Python libraries:
 	- pandas
 	- selenium
+	- pycoingecko
 - Google Chrome
 - [Chrome WebDriver](https://chromedriver.chromium.org/)
 

@@ -14,25 +14,24 @@ driver = webdriver.Chrome('/usr/bin/chromedriver')
 # Constants
 coin_name = 'ethereum'
 pace = -1 # pace to move the cursor on the chart
-lag_days = 29 # the number of days that we want to crawl
 # list of available intervals for scraping:
 intervals = {
-    '1D': '//*[@id="react-tabs-0"]',
-    '7D': '//*[@id="react-tabs-2"]',
-    '1M': '//*[@id="react-tabs-4"]',
-    '3M': '//*[@id="react-tabs-6"]',
-    '1Y': '//*[@id="react-tabs-8"]'
+    '1D': ('/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[1]/div[2]/a[1]', 1), 
+    '7D': ('/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[1]/div[2]/a[2]'), 7),
+    '14D': ('/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[1]/div[2]/a[3]', 14),
+    '30D': ('/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[1]/div[2]/a[4]', 30),
+    '90D': ('/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[1]/div[2]/a[5]', 90),
+    '180D': ('/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[1]/div[2]/a[6]', 180),
+    '1Y': ('/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[1]/div[2]/a[7]', 365)
 }
-selected_interval = '1M'
+selected_interval = '30D'
 
 # URL for the web that you want to crawl
-my_url = 'https://coinmarketcap.com/currencies/{}/'.format(coin_name)
+my_url = 'https://www.coingecko.com/en/coins/{}/'.format(coin_name)
 driver.get(my_url)
-driver.maximize_window()
 
-# Click to move to the desired interval tab that you want to scrape (1D, 7D, etc)
-selected_tab = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, intervals[selected_interval])))
-selected_tab.click()
+# lag day calculate:
+selected_interval_path, lag_days = intervals[selected_interval]
 
 # time period to crawl
 stop_time = dt.now() - timedelta(days = lag_days) # stop time
@@ -40,10 +39,16 @@ stop_time = dt.now() - timedelta(days = lag_days) # stop time
 # The 'action' object, which we'll use to move cursor on screen
 action = webdriver.ActionChains(driver)
 
+# Click to move to the desired interval tab that you want to scrape (1D, 7D, etc)
+selected_tab = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, selected_interval_path)))
+selected_tab.click()
+
+
+
 # Crawl price and volume
 
 # find chart element, and get its size & location on the page
-prices_table = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[1]/div/div[2]/div/div[3]/div/div[1]/div[1]/div[1]/div/div/div/div[3]/div/div[1]/div/div/div[3]/div[1]/div[2]/div/table/tr[1]')))
+prices_table = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[4]/div[6]/div/div[2]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div[1]/div/div[4]/div[2]/svg/rect[1]')))
 loc = prices_table.location
 size = prices_table.size
 print(loc)
@@ -52,7 +57,7 @@ print(size)
 indexes = []
 prices = []
 vols = []
-action.move_to_element_with_offset(prices_table, size['width']-5, 0).perform() # move the cursor near to the current time 
+action.move_to_element_with_offset(prices_table, size['width'], 0).perform() # move the cursor near to the current time 
 # While Loop to crawl data from the last 30 days 
 while True:
     # date
